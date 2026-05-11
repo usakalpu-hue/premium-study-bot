@@ -10,7 +10,7 @@ import asyncio
 # --- CONFIGURATION ---
 # Render के Environment Variables से डेटा उठाएगा
 TOKEN = os.getenv("8643810259:AAFOGKJ4kAT93Mofdx-DLvmgutI_7bc4dTU")
-ADMIN_ID = int(os.getenv("8766444295"))
+ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 # Default Settings (शुरुआत के लिए)
 settings = {
