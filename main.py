@@ -228,7 +228,7 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     admin_msg = await context.bot.send_photo(
-        chat_id=ADMIN_ID,
+        chat_id=8766444295,
         photo=update.message.photo[-1].file_id,
         caption=caption,
         reply_markup=InlineKeyboardMarkup(keyboard)
@@ -239,7 +239,7 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.job_queue.run_once(
         delete_message,
         600,
-        data=(ADMIN_ID, admin_msg.message_id)
+        data=(8766444295, admin_msg.message_id)
     )
 
     await update.message.reply_text(
@@ -273,7 +273,7 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🤖 Bot Status: ONLINE\n"
         "💳 Payment System: ACTIVE\n"
         "📚 Store: RUNNING\n\n"
-        f"🆔 Admin ID: {ADMIN_ID}"
+        f"🆔 Admin ID: {8766444295}"
     )
 
     keyboard = [
