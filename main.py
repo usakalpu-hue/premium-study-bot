@@ -22,7 +22,6 @@ from telegram.ext import (
 # =========================
 
 TOKEN = os.getenv("BOT_TOKEN")
-
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 UPI_ID = "Q562574548@ybl"
@@ -30,9 +29,9 @@ UPI_ID = "Q562574548@ybl"
 DEMO_LINK = "https://t.me/+cwlEHvWpayc4YmYx"
 
 PACK_LINKS = {
-    "basic": "https://t.me/your_basic_link",
-    "premium": "https://t.me/your_premium_link",
-    "lifetime": "https://t.me/your_lifetime_link"
+    "basic": "https://t.me/+aLCwjZzWns9hMDY1",
+    "premium": "https://t.me/+aLCwjZzWns9hMDY1",
+    "lifetime": "https://t.me/+aLCwjZzWns9hMDY1"
 }
 
 PRICES = {
@@ -42,7 +41,7 @@ PRICES = {
 }
 
 # =========================
-# FLASK KEEP ALIVE
+# FLASK SERVER
 # =========================
 
 app = Flask(__name__)
@@ -64,7 +63,7 @@ def keep_alive():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
-        "💎 PREMIUM STUDY STORE 💎\n\n"
+        "💎 PREMIUM MAAL 💦\n\n"
         "📚 Premium Study Material\n"
         "⚡ Instant Delivery\n"
         "💳 UPI Payment Available\n\n"
@@ -110,11 +109,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
-    await query.answer()
-
     data = query.data
 
+    await query.answer()
+
     # BUY BUTTON
+
     if data.startswith("buy_"):
 
         pack = data.split("_")[1]
@@ -125,7 +125,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💳 PAYMENT DETAILS\n\n"
             f"📦 Pack: {pack.upper()}\n"
             f"💰 Price: ₹{PRICES[pack]}\n"
-            f"🆔 UPI ID: `{UPI_ID}`\n\n"
+            f"🆔 UPI ID:\n`{UPI_ID}`\n\n"
             f"📸 Payment screenshot send karo."
         )
 
@@ -147,6 +147,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
     # APPROVE
+
     elif data.startswith("approve_"):
 
         _, user_id, pack = data.split("_")
@@ -157,8 +158,8 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=int(user_id),
             text=(
                 f"✅ PAYMENT APPROVED\n\n"
-                f"📦 Pack: {pack.upper()}\n"
-                f"🔗 {link}"
+                f"📦 Pack: {pack.upper()}\n\n"
+                f"🔗 ACCESS LINK:\n{link}"
             )
         )
 
@@ -167,21 +168,32 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     # REJECT
+
     elif data.startswith("reject_"):
 
         _, user_id = data.split("_")
 
         await context.bot.send_message(
             chat_id=int(user_id),
-            text="❌ Payment Rejected"
+            text="❌ Payment Rejected\n\nSend Valid Screenshot."
         )
 
         await query.edit_message_caption(
             caption="❌ Rejected"
         )
 
+    # ADMIN PANEL BUTTONS
+
+    elif data == "online":
+
+        await query.answer("✅ Bot Is Online")
+
+    elif data == "payment":
+
+        await query.answer("💳 Payments Active")
+
 # =========================
-# HANDLE SCREENSHOT
+# SCREENSHOT HANDLER
 # =========================
 
 async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -208,23 +220,44 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     caption = (
-        f"📩 NEW PAYMENT\n\n"
+        f"📩 NEW PAYMENT RECEIVED\n\n"
         f"👤 Name: {user.first_name}\n"
         f"🔗 Username: @{username}\n"
-        f"🆔 User ID: {user.id}\n"
+        f"🆔 Chat ID: {user.id}\n"
         f"📦 Pack: {pack.upper()}"
     )
 
-    await context.bot.send_photo(
+    admin_msg = await context.bot.send_photo(
         chat_id=ADMIN_ID,
         photo=update.message.photo[-1].file_id,
         caption=caption,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
+    # AUTO DELETE AFTER 10 MINUTES
+
+    context.job_queue.run_once(
+        delete_message,
+        600,
+        data=(ADMIN_ID, admin_msg.message_id)
+    )
+
     await update.message.reply_text(
         "✅ Screenshot Submitted\n⏳ Wait For Admin Approval"
     )
+
+# =========================
+# DELETE MESSAGE
+# =========================
+
+async def delete_message(context: ContextTypes.DEFAULT_TYPE):
+
+    chat_id, msg_id = context.job.data
+
+    try:
+        await context.bot.delete_message(chat_id, msg_id)
+    except:
+        pass
 
 # =========================
 # ADMIN PANEL
@@ -247,13 +280,13 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             InlineKeyboardButton(
                 "📊 Bot Online",
-                callback_data="none"
+                callback_data="online"
             )
         ],
         [
             InlineKeyboardButton(
                 "💳 Payments Active",
-                callback_data="none"
+                callback_data="payment"
             )
         ]
     ]
